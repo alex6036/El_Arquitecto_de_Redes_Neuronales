@@ -3,19 +3,51 @@ import numpy as np
 
 def preprocess_image(image):
     """
-    image: array de imagen subido por Gradio (RGB)
-    devuelve array 28x28x1 normalizado para el modelo
+    Preprocesa la imagen para que se parezca a las de MNIST:
+    - Convierte a gris
+    - Binariza
+    - Encuentra el dígito (contorno)
+    - Recorta y centra
+    - Redimensiona a 28x28
     """
-    # Convertir a escala de grises
-    img = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    # Redimensionar a 28x28
-    img = cv2.resize(img, (28, 28))
-    # Normalizar
-    img = img / 255.0
-    # Invertir colores si es necesario (MNIST: fondo negro, número blanco)
-    img = 1 - img
-    img = img.astype(np.float32)
-    # Añadir canal
-    img = np.expand_dims(img, axis=-1)
-    return img
+    # Escala de grises
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
+    # Invertir: fondo negro, número blanco
+    gray = 255 - gray
+
+    # Binarizar con Otsu
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # Buscar contornos
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if len(contours) == 0:
+        # fallback si no encuentra nada
+        digit = cv2.resize(gray, (28, 28))
+    else:
+        # Tomar el contorno más grande
+        cnt = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(cnt)
+        digit = gray[y:y+h, x:x+w]
+
+        # Redimensionar manteniendo proporción a 20x20
+        h, w = digit.shape
+        if h > w:
+            new_h = 20
+            new_w = int(w * (20.0 / h))
+        else:
+            new_w = 20
+            new_h = int(h * (20.0 / w))
+        digit = cv2.resize(digit, (new_w, new_h))
+
+        # Crear imagen 28x28 negra y centrar el dígito
+        canvas = np.zeros((28, 28), dtype=np.uint8)
+        x_offset = (28 - new_w) // 2
+        y_offset = (28 - new_h) // 2
+        canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = digit
+        digit = canvas
+
+    # Normalizar a [0,1] y añadir canal
+    digit = digit.astype(np.float32) / 255.0
+    digit = np.expand_dims(digit, axis=-1)
+    return digit
