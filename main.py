@@ -1,33 +1,24 @@
+import gradio as gr
 from model import DigitClassifier
-from preprocessing import load_mnist
 from utils import preprocess_image
 
-def main():
-    # 1. Cargar datos
-    (x_train, y_train), (x_test, y_test) = load_mnist()
-
-    # 2. Crear modelo
+def classify_image_gradio(image):
+    """
+    Función que recibe imagen de Gradio y devuelve número predicho
+    """
+    img_array = preprocess_image(image)
     classifier = DigitClassifier()
-    classifier.build_model()
-
-    # 3. Entrenar
-    print("Entrenando modelo...")
-    classifier.train(x_train, y_train, x_test, y_test, epochs=3)
-
-    # 4. Evaluar
-    loss, acc = classifier.evaluate(x_test, y_test)
-    print(f"Accuracy en test: {acc:.4f}")
-
-    # 5. Guardar modelo entrenado
-    classifier.save("digit_model.h5")
-
-    # 6. Cargar imagen externa
-    filepath = "numero.png"  # cambia por tu propia imagen
-    img = preprocess_image(filepath)
-
-    # 7. Predecir
-    pred = classifier.predict(img)
-    print(f"El número detectado es: {pred}")
+    digit = classifier.predict(img_array)
+    return digit
 
 if __name__ == "__main__":
-    main()
+    interface = gr.Interface(
+        fn=classify_image_gradio,
+        inputs=gr.Image(type="numpy"),
+        outputs=gr.Textbox(label="Número predicho"),
+        title="Clasificador de Números MNIST",
+        description="Sube una imagen de un dígito manuscrito (0-9) y el modelo te dirá qué número es."
+    )
+
+    interface.launch()
+
