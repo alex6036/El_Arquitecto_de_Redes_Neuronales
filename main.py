@@ -28,6 +28,10 @@ def save_digit(image, label):
     if image is None:
         return "❌ No hay imagen"
 
+    # Extraer la imagen si viene como diccionario desde Gradio
+    if isinstance(image, dict) and "image" in image:
+        image = image["image"]
+
     # Convertir a escala de grises
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
@@ -39,6 +43,7 @@ def save_digit(image, label):
     cv2.imwrite(filename, digit)
 
     return f"✅ Imagen guardada como {filename}"
+
 
 
 # ---------- MAIN ----------
@@ -56,7 +61,8 @@ if __name__ == "__main__":
         with gr.Tab("🖌️ Entrenador"):
             gr.Markdown("Dibuja un número, selecciona su etiqueta y guárdalo para entrenar después.")
             with gr.Row():
-                sketch = gr.Sketchpad(shape=(200, 200), brush_radius=10, type="numpy")
+                sketch = gr.Sketchpad(canvas_size=(200, 200), type="numpy")
+
                 label = gr.Dropdown(choices=[str(i) for i in range(10)], label="Número")
             save_btn = gr.Button("💾 Guardar")
             save_output = gr.Textbox(label="Estado")
