@@ -1,0 +1,9 @@
+# Entornos virtuales
+.venv/
+__pycache__/
+*.pyc
+
+# Datos y modelos
+data/raw/
+data/processed/
+data/models/
