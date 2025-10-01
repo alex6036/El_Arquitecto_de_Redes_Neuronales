@@ -1,2 +1,4 @@
 # requirements.txt
 # Lista de dependencias para el proyecto
+numpy
+streamlit
