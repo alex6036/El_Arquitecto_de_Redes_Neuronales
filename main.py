@@ -1,5 +1,6 @@
 # main.py
 # Punto de entrada para el proyecto de redes neuronales
+from pyexpat import model
 import numpy as np
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
@@ -43,6 +44,12 @@ def main():
         batch_size=128,
         verbose=2
     )
+  
+
+
+    # Guardar el modelo entrenado
+    model.save("data/models/mnist_model.h5")
+    print("Modelo guardado en data/models/mnist_model.h5")
 
     # -----------------------------
     # 4️⃣ Evaluar rendimiento
