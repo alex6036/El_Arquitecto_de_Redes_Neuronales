@@ -1,4 +1,0 @@
-tensorflow
-tensorflow-cpu
-opencv-python-headless
-gradio
